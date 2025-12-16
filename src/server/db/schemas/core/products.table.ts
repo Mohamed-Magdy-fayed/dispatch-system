@@ -24,5 +24,5 @@ export const products = createTable(
       .notNull(),
     updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
   }),
-  (t) => [index("name_idx").on(t.name)]
+  (t) => [index("product_name_idx").on(t.name)]
 );
