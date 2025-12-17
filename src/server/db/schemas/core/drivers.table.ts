@@ -1,6 +1,7 @@
 import { index } from "drizzle-orm/pg-core";
 import { DispatchStatus } from "../types/Dispatch.enum";
 import { createTable } from "./table";
+import { DriverStatus } from "../types/driver.enum";
 
 export const drivers = createTable(
   "driver",
@@ -9,8 +10,8 @@ export const drivers = createTable(
     name: d.varchar("name", { length: 50 }).notNull(),
     status: d
       .varchar("status", { length: 30 })
-      .$type<DispatchStatus>()
-      .$default(() => DispatchStatus.Pending)
+      .$type<DriverStatus>()
+      .$default(() => DriverStatus.Active)
       .notNull(),
     createdAt: d
       .timestamp({ withTimezone: true })
@@ -18,5 +19,5 @@ export const drivers = createTable(
       .notNull(),
     updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
   }),
-  (t) => [index("driver_name_idx").on(t.name)],
+  (t) => [index("driver_name_idx").on(t.name)]
 );
