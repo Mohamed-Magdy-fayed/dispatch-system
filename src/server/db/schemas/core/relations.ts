@@ -1,15 +1,18 @@
-import { relations } from "drizzle-orm";
+// this file will get very big as we add more tables and relations
+// so we can split it into multiple files later if needed
+// or simply include relations in each table file itself
 
-import { customers } from "./customers.table";
-import { orders } from "./orders.table";
-import { routes } from "./routes.table";
+import { relations } from "drizzle-orm";
 import { areas } from "./areas.table";
-import { dispatches } from "./dispatches.table";
-import { dispatch_routes } from "./dispatch-routes.table";
+import { customers } from "./customers.table";
 import { dispatch_orders } from "./dispatch-orders.table";
-import { products } from "./products.table";
-import { order_products } from "./order_products";
+import { dispatch_routes } from "./dispatch-routes.table";
+import { dispatches } from "./dispatches.table";
 import { drivers } from "./drivers.table";
+import { order_products } from "./order_products";
+import { orders } from "./orders.table";
+import { products } from "./products.table";
+import { routes } from "./routes.table";
 import { trucks } from "./trucks.table";
 
 // ========================== CUSTOMERS ==========================
@@ -67,7 +70,7 @@ export const dispatch_ordersRelations = relations(
       fields: [dispatch_orders.orderId],
       references: [orders.id],
     }),
-  })
+  }),
 );
 
 // ========================== DISPATCH_ROUTES ==========================
@@ -82,7 +85,7 @@ export const dispatch_routesRelations = relations(
       fields: [dispatch_routes.routeId],
       references: [routes.id],
     }),
-  })
+  }),
 );
 
 // ========================== PRODUCTS ==========================
@@ -102,7 +105,7 @@ export const order_productsRelations = relations(
       fields: [order_products.productId],
       references: [products.id],
     }),
-  })
+  }),
 );
 
 // ========================== DRIVERS ==========================

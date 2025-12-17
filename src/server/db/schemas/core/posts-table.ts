@@ -1,3 +1,6 @@
+// you can remove this as it's just an example file
+
+
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 

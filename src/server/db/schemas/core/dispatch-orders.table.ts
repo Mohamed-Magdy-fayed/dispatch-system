@@ -1,7 +1,7 @@
 import { index } from "drizzle-orm/pg-core";
-import { createTable } from "./table";
 import { dispatches } from "./dispatches.table";
 import { orders } from "./orders.table";
+import { createTable } from "./table";
 
 export const dispatch_orders = createTable(
   "dispatch_orders",
@@ -22,5 +22,5 @@ export const dispatch_orders = createTable(
       .notNull(),
     updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
   }),
-  (t) => [index("dispatch_order_idx").on(t.dispatchId, t.orderId)]
+  (t) => [index("dispatch_order_idx").on(t.dispatchId, t.orderId)],
 );
