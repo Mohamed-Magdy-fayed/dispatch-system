@@ -1,7 +1,7 @@
 import { index } from "drizzle-orm/pg-core";
-import { createTable } from "./table";
 import { dispatches } from "./dispatches.table";
 import { routes } from "./routes.table";
+import { createTable } from "./table";
 
 export const dispatch_routes = createTable(
   "dispatch_routes",
@@ -22,5 +22,5 @@ export const dispatch_routes = createTable(
       .notNull(),
     updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
   }),
-  (t) => [index("dispatch_route_idx").on(t.dispatchId, t.routeId)]
+  (t) => [index("dispatch_route_idx").on(t.dispatchId, t.routeId)],
 );

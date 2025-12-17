@@ -1,6 +1,6 @@
 import { index } from "drizzle-orm/pg-core";
-import { createTable } from "./table";
 import { DispatchStatus } from "../types/Dispatch.enum";
+import { createTable } from "./table";
 
 export const drivers = createTable(
   "driver",
@@ -18,5 +18,5 @@ export const drivers = createTable(
       .notNull(),
     updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
   }),
-  (t) => [index("driver_name_idx").on(t.name)]
+  (t) => [index("driver_name_idx").on(t.name)],
 );

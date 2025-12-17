@@ -1,8 +1,8 @@
 import { index, pgTableCreator } from "drizzle-orm/pg-core";
-import { customers } from "./customers.table";
-import { areas } from "./areas.table";
-import { createTable } from "./table";
 import { OrderStatus } from "../types/order.enum";
+import { areas } from "./areas.table";
+import { customers } from "./customers.table";
+import { createTable } from "./table";
 
 export const orders = createTable(
   "order",
@@ -16,7 +16,7 @@ export const orders = createTable(
       .notNull()
       .references(() => customers.id), // كل طلب تابع لعميل
 
-    areaId: d
+    areaId: d // we said that this will not be relation it will be info only
       .integer()
       .notNull()
       .references(() => areas.id), // كل طلب مرتبط بمنطقة، يحدد موقع التوصيل
@@ -39,5 +39,5 @@ export const orders = createTable(
     index("order_name_idx").on(t.name),
     index("order_areaId_idx").on(t.areaId),
     index("order_code_idx").on(t.code),
-  ]
+  ],
 );
