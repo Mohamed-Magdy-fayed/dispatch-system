@@ -7,3 +7,7 @@ export * from "./products.table";
 export * from "./relations";
 export * from "./routes.table";
 export * from "./trucks.table";
+
+export * from "./dispatches.table";
+export * from "./dispatch-orders.table";
+export * from "./dispatch-routes.table";
