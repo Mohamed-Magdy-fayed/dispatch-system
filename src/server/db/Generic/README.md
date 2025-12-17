@@ -4,7 +4,7 @@ This TypeScript generic repository provides a familiar Entity Framework Core-lik
 
 ## Overview
 
-The `GenericRepository<TEntity, TKey>` class implements the `IGenericRepository<TEntity, TKey>` interface and provides CRUD operations for any Drizzle table. It supports:
+The `GenericRepository<TTable, TEntity, TKey>` class implements the `IGenericRepository<TTable, TEntity, TKey>` interface and provides CRUD operations for any Drizzle table. Table-specific types flow through every callback so filters, paging, and ordering all know the actual columns.
 
 - Filtering with lambda-style expressions
 - Pagination
@@ -15,44 +15,49 @@ The `GenericRepository<TEntity, TKey>` class implements the `IGenericRepository<
 ## Type Constraints
 
 ```typescript
-export class GenericRepository<TEntity extends Record<string, any>, TKey>
+export class GenericRepository<
+  TTable extends PgTable,
+  TEntity extends Record<string, unknown> = InferModel<TTable, "select">,
+  TKey = PrimaryKey<TEntity>
+>
 ```
 
-- `TEntity`: Must extend `Record<string, any>` (object type)
-- `TKey`: The primary key type (usually `number` for auto-increment IDs)
+- `TTable`: The Drizzle `PgTable` definition you pass to the constructor
+- `TEntity`: Defaults to `InferModel<TTable, "select">` but can be overridden
+- `TKey`: Defaults to the table's `id` property (via the `PrimaryKey` helper)
 
 ## Constructor
 
 ```typescript
-constructor(table: PgTable)
+constructor(table: TTable)
 ```
 
-Pass any Drizzle table definition:
+Pass any Drizzle table definition. You can also pass the table type explicitly to keep the repository typed throughout your app:
 
 ```typescript
 import { customers } from "../schemas/core";
 import { GenericRepository } from "./GenericRepository";
 
-const customerRepo = new GenericRepository(customers);
+const customerRepo = new GenericRepository<typeof customers>(customers);
 ```
 
 ## Methods
 
 ### getAsync
 
-Retrieves multiple entities with optional filtering, paging, and ordering.
+Retrieves multiple entities with optional filtering, paging, and ordering. The method now takes a single `GetAsyncOptions<TTable>` object so every callback sees the actual table definition.
 
 ```typescript
-async getAsync(
-  filter?: (table: any) => any,
-  page?: number,
-  pageSize?: number,
-  orderBy?: (table: any) => any,
-  includeProperties?: string[],
-  noTrack?: boolean,
-  cancellationToken?: AbortSignal
-): Promise<TEntity[]>
+async getAsync(options?: GetAsyncOptions<TTable>): Promise<TEntity[]>
 ```
+
+`GetAsyncOptions` accepts:
+
+- `filters`: a callback that receives the typed table and returns a Drizzle condition
+- `order`: a callback that returns an ordering expression (e.g., `asc(table.name)`)
+- `page` + `perPage`: controls paging, defaults to 10 rows; `pageSize` is still supported as an alias
+- `includeProperties`: placeholder for EF Core-style includes (Drizzle prefers `with()`)
+- `noTrack` / `cancellationToken`: preserved for parity but currently ignored (Drizzle lacks change tracking)
 
 **Examples:**
 
@@ -61,30 +66,28 @@ async getAsync(
 const allCustomers = await customerRepo.getAsync();
 
 // Filter customers by name
-const johns = await customerRepo.getAsync((table) => eq(table.name, "John"));
+const johns = await customerRepo.getAsync({
+  filters: (table) => eq(table.name, "John"),
+});
 
 // Paginated results
-const page2 = await customerRepo.getAsync(
-  undefined, // no filter
-  2, // page 2
-  20 // 20 per page
-);
+const page2 = await customerRepo.getAsync({
+  page: 2,
+  perPage: 20,
+});
 
 // Ordered by name
-const ordered = await customerRepo.getAsync(
-  undefined, // no filter
-  undefined, // no paging
-  undefined, // default page size
-  (table) => asc(table.name) // order by name ascending
-);
+const ordered = await customerRepo.getAsync({
+  order: (table) => asc(table.name),
+});
 
 // Combined filter, paging, and ordering
-const filteredPaged = await customerRepo.getAsync(
-  (table) => like(table.email, "%@example.com"),
-  1,
-  10,
-  (table) => desc(table.createdAt)
-);
+const filteredPaged = await customerRepo.getAsync({
+  filters: (table) => like(table.email, "%@example.com"),
+  page: 1,
+  perPage: 10,
+  order: (table) => desc(table.createdAt),
+});
 ```
 
 ### getByIdAsync
@@ -109,7 +112,7 @@ if (customer) {
 Counts entities matching an optional filter.
 
 ```typescript
-async countAsync(filter?: (table: any) => any, cancellationToken?: AbortSignal): Promise<number>
+async countAsync(filter?: (table: TTable) => SQL, cancellationToken?: AbortSignal): Promise<number>
 ```
 
 **Examples:**
@@ -307,11 +310,11 @@ export class CustomerRepository extends GenericRepository<typeof customers.$infe
   }
 
   async getActiveCustomers() {
-    return this.getAsync((table) => eq(table.status, 'active'));
+    return this.getAsync({ filters: (table) => eq(table.status, 'active') });
   }
 
   async findByEmail(email: string) {
-    const result = await this.getAsync((table) => eq(table.email, email));
+    const result = await this.getAsync({ filters: (table) => eq(table.email, email) });
     return result[0];
   }
 }
