@@ -1,5 +1,6 @@
 import { db } from "../../../index";
-import { dispatches } from "../../core";
+import { dispatches } from "../../core/dispatches.table";
+
 import { DispatchStatus } from "../../types/Dispatch.enum";
 
 export async function seedDispatches() {
