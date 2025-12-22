@@ -17,7 +17,7 @@ export const products = createTable(
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
     name: d.varchar("name", { length: 256 }).notNull(),
     price: d.numeric("price", { precision: 10, scale: 2 }).notNull(),
-    discription: d.varchar({ length: 500 }),
+    description: d.varchar({ length: 500 }),
     createdAt: d
       .timestamp({ withTimezone: true })
       .$defaultFn(() => /* @__PURE__ */ new Date())
