@@ -1,16 +1,20 @@
 import { z } from "zod";
 
-// ✅ TypeScript Type for Product
+// =====================
+// ✅ Product Type
+// =====================
 export interface Product {
   id: number;
   name: string;
-  price: string; // لاحظ إنك بتخزن السعر كـ string في DB
+  price: string; // السعر مخزن كـ string في DB
   description?: string | null;
   createdAt: Date;
   updatedAt?: Date | null;
 }
 
-// Base Schema matching DB schema exactly
+// =====================
+// ✅ Zod Schemas
+// =====================
 export const productFields = {
   name: z
     .string()
@@ -20,7 +24,7 @@ export const productFields = {
   description: z
     .string()
     .max(500, "Description cannot exceed 500 characters")
-    .optional(), // nullable في DB
+    .optional(),
 };
 
 // Create schema
@@ -31,3 +35,37 @@ export const updateProductSchema = z.object({
   id: z.number(), // لازم id يكون موجود في update
   ...productFields,
 });
+
+// =====================
+// ✅ Pagination Types
+// =====================
+export interface PageInfo {
+  page: number;
+  pageSize: number;
+  countWithFilters: number;
+  countTotal: number;
+}
+
+// =====================
+// ✅ getAll return type
+// =====================
+export interface GetAllProductsResult {
+  data: Product[];
+  pageInfo: PageInfo;
+}
+
+// =====================
+// ✅ getAll options type
+// =====================
+export interface GetProductsOptions {
+  page?: number;
+  pageSize?: number;
+  filters?: {
+    name?: string;
+    description?: string;
+  };
+  sort?: {
+    field: string;
+    direction: "asc" | "desc";
+  };
+}

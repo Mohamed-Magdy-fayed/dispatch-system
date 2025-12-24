@@ -5,9 +5,14 @@ import type { TableLikeHasEmptySelection } from "drizzle-orm/pg-core/query-build
 import { db } from "../index";
 
 type PrimaryKey<TEntity> = TEntity extends { id: infer Id } ? Id : number;
-type TableWithSelection<TTable extends PgTable> = TableLikeHasEmptySelection<TTable> extends true ? never : TTable;
-type InsertModelOf<TTable extends PgTable> = InferInsertModel<TableWithSelection<TTable>>;
-type UpdateModelOf<TTable extends PgTable, TKey> = Partial<Omit<InsertModelOf<TTable>, "id">> & { id: TKey };
+type TableWithSelection<TTable extends PgTable> =
+  TableLikeHasEmptySelection<TTable> extends true ? never : TTable;
+type InsertModelOf<TTable extends PgTable> = InferInsertModel<
+  TableWithSelection<TTable>
+>;
+type UpdateModelOf<TTable extends PgTable, TKey> = Partial<
+  Omit<InsertModelOf<TTable>, "id">
+> & { id: TKey };
 
 export interface GetAsyncOptions<TTable extends PgTable> {
   filters?: (table: TTable) => SQL;
@@ -23,17 +28,29 @@ export interface GetAsyncOptions<TTable extends PgTable> {
 export interface IGenericRepository<
   TTable extends PgTable,
   TEntity extends Record<string, unknown> = InferModel<TTable, "select">,
-  TKey = PrimaryKey<TEntity>,
+  TKey = PrimaryKey<TEntity>
 > {
   getAsync(options?: GetAsyncOptions<TTable>): Promise<TEntity[]>;
 
-  getByIdAsync(id: TKey, cancellationToken?: AbortSignal): Promise<TEntity | undefined>;
+  getByIdAsync(
+    id: TKey,
+    cancellationToken?: AbortSignal
+  ): Promise<TEntity | undefined>;
 
-  countAsync(filter?: (table: TTable) => SQL, cancellationToken?: AbortSignal): Promise<number>;
+  countAsync(
+    filter?: (table: TTable) => SQL,
+    cancellationToken?: AbortSignal
+  ): Promise<number>;
 
-  addAsync(entity: InsertModelOf<TTable>, cancellationToken?: AbortSignal): Promise<TEntity>;
+  addAsync(
+    entity: InsertModelOf<TTable>,
+    cancellationToken?: AbortSignal
+  ): Promise<TEntity>;
 
-  updateAsync(entity: UpdateModelOf<TTable, TKey>, cancellationToken?: AbortSignal): Promise<void>;
+  updateAsync(
+    entity: UpdateModelOf<TTable, TKey>,
+    cancellationToken?: AbortSignal
+  ): Promise<void>;
 
   deleteAsync(id: TKey, cancellationToken?: AbortSignal): Promise<void>;
 
@@ -43,8 +60,9 @@ export interface IGenericRepository<
 export class GenericRepository<
   TTable extends PgTable,
   TEntity extends Record<string, unknown> = InferModel<TTable, "select">,
-  TKey = PrimaryKey<TEntity>,
-> implements IGenericRepository<TTable, TEntity, TKey> {
+  TKey = PrimaryKey<TEntity>
+> implements IGenericRepository<TTable, TEntity, TKey>
+{
   private readonly table: TTable;
 
   constructor(table: TTable) {
@@ -88,9 +106,9 @@ export class GenericRepository<
       whereConditions.push(filters(this.table));
     }
 
-    const combinedWhere = whereConditions.reduce<SQL | undefined>((acc, condition) =>
-      acc ? and(acc, condition) : condition,
-      undefined,
+    const combinedWhere = whereConditions.reduce<SQL | undefined>(
+      (acc, condition) => (acc ? and(acc, condition) : condition),
+      undefined
     );
 
     const filteredQuery = combinedWhere
@@ -103,7 +121,7 @@ export class GenericRepository<
     if (includeProperties && includeProperties.length > 0) {
       // For now, skip includes as Drizzle handles relations differently
       console.warn(
-        "Includes not fully implemented in generic repo - use specific queries for relations",
+        "Includes not fully implemented in generic repo - use specific queries for relations"
       );
     }
 
@@ -111,11 +129,12 @@ export class GenericRepository<
       ? filteredQuery.orderBy(order(this.table))
       : filteredQuery;
 
-    const pagedQuery = page && page > 0
-      ? orderedQuery
-        .limit(effectivePageSize)
-        .offset((page - 1) * effectivePageSize)
-      : orderedQuery;
+    const pagedQuery =
+      page && page > 0
+        ? orderedQuery
+            .limit(effectivePageSize)
+            .offset((page - 1) * effectivePageSize)
+        : orderedQuery;
 
     const result = await pagedQuery;
     return result as TEntity[];
@@ -123,7 +142,7 @@ export class GenericRepository<
 
   async getByIdAsync(
     id: TKey,
-    cancellationToken?: AbortSignal,
+    cancellationToken?: AbortSignal
   ): Promise<TEntity | undefined> {
     void cancellationToken;
     const result = await db
@@ -137,7 +156,7 @@ export class GenericRepository<
 
   async countAsync(
     filter?: (table: TTable) => SQL,
-    cancellationToken?: AbortSignal,
+    cancellationToken?: AbortSignal
   ): Promise<number> {
     let whereCondition: SQL | undefined;
     if (filter) {
@@ -156,7 +175,7 @@ export class GenericRepository<
 
   async addAsync(
     entity: InsertModelOf<TTable>,
-    cancellationToken?: AbortSignal,
+    cancellationToken?: AbortSignal
   ): Promise<TEntity> {
     void cancellationToken;
     const result = await db
@@ -168,11 +187,12 @@ export class GenericRepository<
 
   async updateAsync(
     entity: UpdateModelOf<TTable, TKey>,
-    cancellationToken?: AbortSignal,
+    cancellationToken?: AbortSignal
   ): Promise<void> {
     void cancellationToken;
     const { id: entityId, ...rawUpdates } = entity;
-    if (!entityId) throw new Error("Entity must have an id property for update");
+    if (!entityId)
+      throw new Error("Entity must have an id property for update");
 
     const updates = rawUpdates as unknown as Partial<InsertModelOf<TTable>>;
     await db
@@ -188,13 +208,15 @@ export class GenericRepository<
 
   async softDeleteAsync(
     id: TKey,
-    cancellationToken?: AbortSignal,
+    cancellationToken?: AbortSignal
   ): Promise<void> {
     void cancellationToken;
     const tableWithIsDeleted = this.tableWithIsDeleted;
     const isDeletedColumn = tableWithIsDeleted.isDeleted;
     if (isDeletedColumn) {
-      const softDeleteValues = { isDeleted: true } as unknown as Partial<InsertModelOf<TTable>>;
+      const softDeleteValues = { isDeleted: true } as unknown as Partial<
+        InsertModelOf<TTable>
+      >;
       await db
         .update(this.selectableTable)
         .set(softDeleteValues)

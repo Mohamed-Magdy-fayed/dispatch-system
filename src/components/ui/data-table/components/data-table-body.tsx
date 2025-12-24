@@ -1,8 +1,13 @@
+"use client";
+
 import * as React from "react";
 import { useDataTable } from "./data-table-context";
-import { TableBody, TableRow, TableCell } from "../table";
+import { TableBody, TableRow, TableCell } from "../../table";
 import type { CellContext } from "@tanstack/react-table";
 
+/* ============================================
+   Table Body Rendering
+============================================ */
 export function DataTableBody() {
   const { table } = useDataTable();
 

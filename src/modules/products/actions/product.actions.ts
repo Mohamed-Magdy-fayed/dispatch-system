@@ -1,11 +1,18 @@
+"use server";
+
 import { revalidatePath } from "next/cache";
 import {
   ProductService,
   createProductSchema,
   updateProductSchema,
 } from "../index";
+import type { GetAllProductsResult, GetProductsOptions } from "../types/product.types"; // ✅ type واضح
 
 const productService = new ProductService();
+
+/* =========================
+   Create
+========================= */
 
 export async function createProduct(formData: FormData) {
   try {
@@ -18,7 +25,7 @@ export async function createProduct(formData: FormData) {
     const validated = createProductSchema.parse(data);
     const result = await productService.create(validated);
 
-    revalidatePath("/products");
+    revalidatePath("/admin/products");
     return { success: true, data: result };
   } catch (error) {
     return {
@@ -28,9 +35,13 @@ export async function createProduct(formData: FormData) {
   }
 }
 
+/* =========================
+   Update
+========================= */
 export async function updateProduct(formData: FormData) {
   try {
     const id = parseInt(formData.get("id") as string);
+
     const data = {
       id,
       name: formData.get("name") as string,
@@ -41,7 +52,7 @@ export async function updateProduct(formData: FormData) {
     const validated = updateProductSchema.parse(data);
     await productService.update(validated);
 
-    revalidatePath("/products");
+    revalidatePath("/admin/products");
     return { success: true };
   } catch (error) {
     return {
@@ -51,10 +62,13 @@ export async function updateProduct(formData: FormData) {
   }
 }
 
+/* =========================
+   Delete
+========================= */
 export async function deleteProduct(id: number) {
   try {
     await productService.delete(id);
-    revalidatePath("/products");
+    revalidatePath("/admin/products");
     return { success: true };
   } catch (error) {
     return {
@@ -64,10 +78,18 @@ export async function deleteProduct(id: number) {
   }
 }
 
-export async function getProducts() {
+/* =========================
+   Get All (FIX HERE)
+========================= */
+export async function getProducts(
+  options?: GetProductsOptions
+): Promise<
+  | { success: true; data: GetAllProductsResult }
+  | { success: false; error: string }
+> {
   try {
-    const products = await productService.getAll();
-    return { success: true, data: products };
+    const result = await productService.getAll(options);
+    return { success: true, data: result };
   } catch (error) {
     return {
       success: false,
@@ -76,6 +98,10 @@ export async function getProducts() {
   }
 }
 
+
+/* =========================
+   Get By Id
+========================= */
 export async function getProductById(id: number) {
   try {
     const product = await productService.getById(id);

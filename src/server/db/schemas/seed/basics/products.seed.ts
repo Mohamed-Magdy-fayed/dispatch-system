@@ -5,8 +5,8 @@ export async function seedProducts() {
   return db
     .insert(products)
     .values([
-      { name: "Box Small", price: "10.00", discription: "Small box" },
-      { name: "Box Large", price: "20.00", discription: "Large box" },
+      { name: "Box Small", price: "10.00", description: "Small box" },
+      { name: "Box Large", price: "20.00", description: "Large box" },
     ])
     .returning();
 }
