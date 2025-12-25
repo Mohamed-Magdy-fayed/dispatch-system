@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import * as React from "react";
 
 interface ProductsSearchBTNProps {
@@ -8,8 +9,8 @@ interface ProductsSearchBTNProps {
 
 export function ProductsSearchBTN({ onSearch }: ProductsSearchBTNProps) {
   return (
-    <button onClick={onSearch} className="btn btn-primary" disabled={!onSearch}>
+    <Button variant={"secondary"} onClick={onSearch} disabled={!onSearch}>
       Search
-    </button>
+    </Button>
   );
 }

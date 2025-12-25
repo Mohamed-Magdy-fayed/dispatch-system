@@ -6,7 +6,10 @@ import {
   createProductSchema,
   updateProductSchema,
 } from "../index";
-import type { GetAllProductsResult, GetProductsOptions } from "../types/product.types"; // ✅ type واضح
+import type {
+  GetAllProductsResult,
+  GetProductsOptions,
+} from "../types/product.types"; // ✅ type واضح
 
 const productService = new ProductService();
 
@@ -79,7 +82,7 @@ export async function deleteProduct(id: number) {
 }
 
 /* =========================
-   Get All (FIX HERE)
+   Get All (WITH LOGGING)
 ========================= */
 export async function getProducts(
   options?: GetProductsOptions
@@ -88,16 +91,36 @@ export async function getProducts(
   | { success: false; error: string }
 > {
   try {
+    // =========================
+    // 🟡 REQUEST LOG
+    // =========================
+    // console.log("🟡 [getProducts] REQUEST", {
+    //   page: options?.page,
+    //   pageSize: options?.pageSize,
+    //   filters: options?.filters,
+    //   sort: options?.sort,
+    // });
+
     const result = await productService.getAll(options);
+
+    // =========================
+    // 🟢 RESPONSE LOG
+    // =========================
+    // console.log("🟢 [getProducts] RESPONSE", {
+    //   itemsCount: result.data.length,
+    //   pageInfo: result.pageInfo,
+    // });
+
     return { success: true, data: result };
   } catch (error) {
+    console.error("🔴 [getProducts] ERROR", error);
+
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
-
 
 /* =========================
    Get By Id
